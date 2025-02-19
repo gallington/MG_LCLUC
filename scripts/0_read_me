@@ -4,7 +4,7 @@
   merged if needed for particular analyses. 
   Most of these only include a portion of the vars in that category, the rest are commented out.
   Can be added in as needed. 
-Saves to a .RDS to pull in to other scripts
+Saves to MG_Survey.RDS to pull in to other scripts
 
 2_summary_stats.R
 2a_mgmt
