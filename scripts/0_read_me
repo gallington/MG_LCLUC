@@ -3,9 +3,8 @@
   This is set up to create separate subset df. by category, with the idea that they could be
   merged if needed for particular analyses. 
   Most of these only include a portion of the vars in that category, the rest are commented out.
-  Can be added in as needed. Hence, I didn't save a data file from the final step that combines them 
-  all so that we don't forget which are included. 
-  ** at some point might want to save the data file for easier retrieval.
+  Can be added in as needed. 
+Saves to a .RDS to pull in to other scripts
 
 2_summary_stats.R
 2a_mgmt
