@@ -247,4 +247,4 @@ base_mgmt %>% group_by(pastureChng, pastureChngHow)%>%
   spread(pastureChngHow, n) %>%
   kable()
 
-#lil test for Jessie
+#another test for Jessie
