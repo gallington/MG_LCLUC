@@ -50,7 +50,11 @@ original_file <- original_file %>% rename(Ref = '_1_idInfo_survey_ref_') %>%
 # and renaming the super long col names 
 # see the codebook to cross-reference names to data types
 
-###base_demog----
+
+
+
+
+###BASE DEMOGRAPHICS----
 base_demog <- dplyr::select(original_file,
                     Ref = 'Ref',
                     Aimag = '_2_idInfo_aimag_',
@@ -80,10 +84,14 @@ base_demog <- dplyr::select(original_file,
                   khotAil_num_hh =  '_9_HHDems_num_HH_khotAil_',
                   khotAil_num_ppl =  '_10_HHDems_num_people_khotAil_',
                   khotAil_stay_tog =  '_11_HHDems_do_HH_stayTogether_'
-                    )
+                  )
 view(base_demog)
 
-###base_demog_aimag----
+
+
+
+
+###BASE DEMOGRAPHICS BY AIMAG----
 base_demog <- mutate(base_demog, newAimag = case_when(Aimag == "Tuv aimag" ~ "Tuv", 
                                       Aimag == "Govi-Sumber" ~ "Govisumber",
                                       Aimag == "Dundgovi" ~ "Dundgovi"
@@ -94,7 +102,11 @@ base_demog <- mutate(base_demog, newAimag = case_when(Aimag == "Tuv aimag" ~ "Tu
               )  
 view(base_demog)
 
-###base_movement--------                   
+
+
+
+
+###BASE MOVEMENT--------                   
 base_movement <- dplyr::select(original_file,
                      Ref, 
                      whoHerds = '_1_labor_HHmems_movesAnimals_daily_',
@@ -124,12 +136,17 @@ base_movement <- dplyr::select(original_file,
 view(base_movement)
   
 
+
+
 #base2_movement <- na.omit(base_movement). # need this to do the basic summary stats or get NAs
 
 #str(base2_movement)
 #base2_movement <- base2_movement %>%  mutate(across(Ref, as.factor))
 
-###tenure----- 
+
+
+
+###TENURE----- 
 base_tenure <- dplyr::select(original_file,
                       Ref,       
                       wcTenure = '_1_tenure_HH_winterCamp_',
@@ -141,48 +158,51 @@ base_tenure <- dplyr::select(original_file,
                       scTenure = '_6_tenure_HH_springCamp_',
                       scContract = '_7_tenure_HH_springCamp_contract_',
                       spContract = '_8_tenure_HH_springPasture_contract_'
-)
+                      )
 base_tenure %<>% mutate(across(c(2:9), as.factor))
 view(base_tenure)
 
 
 
 
-###altLivelihoods-------
-# _1_a_altLivelihoods_HHmems_nonHerdingWork_
-# _1_a_i_altLivelihoods_IfYes_who_
-# _1_a_i_altLivelihoods_IfYes_what_
-# _1_b_altLivelihoods_otherInc_
-# _1_b_altLivelihoods_otherInc_pension_
-# _1_b_altLivelihoods_otherInc_herdingLivestock_
-# _1_b_altLivelihoods_otherInc_salary_
-# _1_b_altLivelihoods_otherInc_govAllowance_
-# _1_b_altLivelihoods_otherInc_govAllowance_childBenefit_
-# _1_b_altLivelihoods_otherInc_hourlyWage_
-# _1_b_altLivelihoods_otherInc_remits_
-# _1_b_altLivelihoods_otherInc_crafts_
-# _1_b_altLivelihoods_otherInc_investments_
-# _1_b_altLivelihoods_otherInc_agencyAid_
-# _1_b_altLivelihoods_otherInc_other_
-# _1_b_i_other_text_
-# _2_altLivelihoods_loans_whereToGet_
-# _3_altLivelihoods_loans_howOften_yr_
-# _4_altLivelihoods_loans_minMax_
-# _4_altLivelihoods_loans_min_millions_
-# _4_altLivelihoods_loans_max_millions_
-# _5_altLivelihoods_finNeed_difTime_
-# _5_altLivelihoods_finNeed_difTime_winter_
-# _5_altLivelihoods_finNeed_difTime_autumn_
-# _5_altLivelihoods_finNeed_difTime_lunarNY_
-# _5_altLivelihoods_finNeed_difTime_spring_
-# _5_altLivelihoods_finNeed_difTime_summer_
-# _5_altLivelihoods_finNeed_difTime_yearround_
+###ALTERNATIVE LIVELIHOODS-------
+altLivelihoods <- dplyr::select(original_file, 
+                                Ref, 
+                                famMember_nonHerding = '_1_altLivelihoods_HHmems_nonHerdingWork_',
+                                nonHerding_who = '_1_a_i_altLivelihoods_IfYes_who_',
+                                nonHerding_what = '_1_a_i_altLivelihoods_IfYes_what_',
+                                otherIncome_pension = '_1_b_altLivelihoods_otherInc_pension_',
+                                otherIncome_herding = '_1_b_altLivelihoods_otherInc_herdingLivestock_',
+                                otherIncome_salary = '_1_b_altLivelihoods_otherInc_salary_',
+                                otherIncome_govAllow = '_1_b_altLivelihoods_otherInc_govAllowance_',
+                                otherIncome_childBenefit = '_1_b_altLivelihoods_otherInc_govAllowance_childBenefit_',
+                                otherIncome_hourlyWage = '_1_b_altLivelihoods_otherInc_hourlyWage_',
+                                otherIncome_remits = '_1_b_altLivelihoods_otherInc_remits_',
+                                otherIncome_crafts = '_1_b_altLivelihoods_otherInc_crafts_',
+                                otherIncome_investments = '_1_b_altLivelihoods_otherInc_investments_',
+                                otherIncome_aid = '_1_b_altLivelihoods_otherInc_agencyAid_',
+                                otherIncome_other = '_1_b_altLivelihoods_otherInc_other_',
+                                otherIncome_otherText = '_1_b_i_other_text_',
+                                Loans_whereToGet = '_2_altLivelihoods_loans_whereToGet_',
+                                Loans_howOften_yr = '_3_altLivelihoods_loans_howOften_yr_',
+                                Loans_min_millions = '_4_altLivelihoods_loans_min_millions_',
+                                Loans_max_millions = '_4_altLivelihoods_loans_max_millions_',
+                                Loans_winter = '_5_altLivelihoods_finNeed_difTime_winter_',
+                                Loans_autumn = '_5_altLivelihoods_finNeed_difTime_autumn_',
+                                Loans_lunarNY = '_5_altLivelihoods_finNeed_difTime_lunarNY_',
+                                Loans_spring = '_5_altLivelihoods_finNeed_difTime_spring_',
+                                Loans_summer = '_5_altLivelihoods_finNeed_difTime_summer_',
+                                Loans_yearRound = '_5_altLivelihoods_finNeed_difTime_yearround_'
+                                )
+str(altLivelihoods)
+altLivelihoods %<>% mutate(across(c(2:26), as.factor))
+view(altLivelihoods)
 
 
 
 
 
-###herd mgmt-------
+###HERDING MANAGEMENT-------
 base_mgmt <- dplyr::select(original_file, 
                       Ref,
                       # _1_herdMgmt_dailyHerd_dist_km_
@@ -244,7 +264,9 @@ base_mgmt %<>% mutate(across(c(1, 9:16), as.factor))
 view(base_mgmt)
 
 
-###livestock_fodder-------
+
+
+###LIVESTOCK & FODDER-------
 base_lsk <- dplyr::select(original_file, 
                            Ref,
                           camel23 = '_1_livestock_EOY_2023_camel_tot_',
@@ -277,11 +299,12 @@ base_lsk <- dplyr::select(original_file,
                           '_11_livestock_nextYr_herdSzChg_plans_yn_',
                           '_11_a_livestock_nextYr_herdSzChg_plans_ifYes_what_',
                           ##'_11_b_livestock_nextYr_herdSzChg_plans_ifYes_why_' # error
-)
+                          )
 str(base_lsk)
 base_lsk %<>% mutate(across(c(1, 9:16), as.factor))
+view(base_lsk)
 
-View(base_lsk)
+
 
 
 
@@ -293,10 +316,11 @@ sb <-  base_demog%>%
 view(sb)
 
 
-#Veg change from QGis------- summarized by SOUM???
+
+
+#VEG CHANGE FROM QGIS------- summarized by SOUM???
 veg <- read_csv("./data/veg_cov_chng_export.csv", 
                 col_types = c("fffnddddddn"))
-
 veg <- as_tibble(veg)
 
 veg <- veg %>% 
@@ -327,7 +351,11 @@ str(sv)
 
 saveRDS(sv, "./data/MGsurvey.RDS")
 
-#extras----------                    
+
+
+
+
+#EXTRAS----------                    
 # library(purrr)
 # ## calculate how many NAs there are in each variable 
 # base_movement %>%
