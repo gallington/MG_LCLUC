@@ -21,8 +21,17 @@ library(dplyr)
 ```
 
 ```{r}
-sv<- readRDS("../data/MGsurvey.RDS")
+setwd("C:/Users/jessi/OneDrive - Cornell University/Documents/MSPhD/AllingtonLab_LCLUC/RStudio_WorkingDirectory")
+sv <- read_csv("MG_LCLUC_Household_Survey_TRANSLATED_02172024.csv", 
+                           col_names = TRUE, 
+                           trim_ws = TRUE)
 
+names(sv) <- gsub("\\.x$", "", names(sv))
+
+str(sv)
+sv <- as.data.frame(sv)
+sv <- sv %>% rename(Ref = '_1_idInfo_survey_ref_') %>%
+                                   mutate(across(Ref, as.factor))
 ```
 
 
