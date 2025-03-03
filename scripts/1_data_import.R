@@ -319,37 +319,29 @@ view(sb)
 
 
 #VEG CHANGE FROM QGIS------- summarized by SOUM???
-veg <- read_csv("./data/veg_cov_chng_export.csv", 
-                col_types = c("fffnddddddn"))
-veg <- as_tibble(veg)
-
-veg <- veg %>% 
-  dplyr::select(c(1:3, 5:6, 8:9, 11)) %>%
-  rename(
-      Aimag = '_2_idInfo_aimag_', 
-      Soum = '_3_idInfo_soum_',
-      bag = '_4_idInfo_bagCode_',
-       cov23mean = '_cov23mean',
-       cov23median = '_cov23medi',
-       cov19mean = '_cov19mean',
-       cov19median = '_cov19medi',
-       cov_chng = 'cov_chng_19_23'
-       )    %>%
-  mutate(newAimag = case_when(Aimag == "Tuv" ~ "Tuv", 
-                              Aimag == "Gobisumber" ~ "Govisumber",
-                              Aimag == "Dundgobi" ~ "Dundgovi"
-       )) %>%
-  mutate(concated_loc = paste(newAimag, Soum, bag, sep = '_')
-         ) %>%
-  mutate(across(9:10, as.factor))
+veg <- original_file %>%
+  select(Ref, 
+         Aimag = `_2_idInfo_aimag_`, 
+         Soum = `_3_idInfo_soum_`,
+         bag = `_4_idInfo_bagCode_`,
+         cov23mean = `_cov23mean`,
+         cov23median = `_cov23medi`,
+         cov19mean = `_cov19mean`,
+         cov19median = `_cov19medi`,
+         cov_chng = `cov_chng_19_23`
+          ) 
 
 str(veg)
-str(sb)    
+veg <- veg %>%
+  mutate(newAimag = case_when(Aimag == "Tuv" ~ "Tuv", 
+                              Aimag == "Gobisumber" ~ "Govisumber",
+                              Aimag == "Dundgobi" ~ "Dundgovi",
+                              TRUE ~ Aimag # Keep other values unchanged
+                              )) %>%
+  mutate(concated_loc = paste(newAimag, Soum, bag, sep = '_')) %>%
+  mutate(across(c(cov23mean, cov23median, cov19mean, cov19median, cov_chng), as.factor))
 
-sv <- sb %>% left_join(veg, by = "concated_loc") %>% mutate(across(concated_loc, as.factor))
-str(sv)
-
-saveRDS(sv, "./data/MGsurvey.RDS")
+View(veg)
 
 
 
