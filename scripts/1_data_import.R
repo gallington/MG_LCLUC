@@ -27,16 +27,20 @@ library(readr)
 
 
 ##set wd ----------------------------------------------------------------------
-
-setwd("/Users/gra38/Library/CloudStorage/Box-Box/Repositories/MG_LCLUC")
+setwd("C:/Users/jessi/OneDrive - Cornell University/Documents/MSPhD/AllingtonLab_LCLUC/RStudio_WorkingDirectory")
 
 #CODE-------------------------------------------------------------------------
 
 ##IMPORT DATA FILE ------------------------------------
 # this is the latest file from the SUMR proj, dated 16 Aug 2024:
-original_file <- read_csv("./data/MG_LCLUC_Household_Survey_TRANSLATED_team_08152024.csv", 
+original_file <- read_csv("MG_LCLUC_Household_Survey_TRANSLATED_02172024.csv", 
                            col_names = TRUE, 
                            trim_ws = TRUE)
+
+names(original_file) <- gsub("\\.x$", "", names(original_file))
+view(original_file)
+
+
 str(original_file)
 original_file <- as.data.frame(original_file)
 original_file <- original_file %>% rename(Ref = '_1_idInfo_survey_ref_') %>%
@@ -77,7 +81,9 @@ base_demog <- dplyr::select(original_file,
                   khotAil_num_ppl =  '_10_HHDems_num_people_khotAil_',
                   khotAil_stay_tog =  '_11_HHDems_do_HH_stayTogether_'
                     )
+view(base_demog)
 
+###base_demog_aimag----
 base_demog <- mutate(base_demog, newAimag = case_when(Aimag == "Tuv aimag" ~ "Tuv", 
                                       Aimag == "Govi-Sumber" ~ "Govisumber",
                                       Aimag == "Dundgovi" ~ "Dundgovi"
@@ -85,7 +91,8 @@ base_demog <- mutate(base_demog, newAimag = case_when(Aimag == "Tuv aimag" ~ "Tu
               mutate(across(newAimag, as.factor)) %>%
               mutate(across(c(1:4), as.factor)) %>%
               mutate(concated_loc = paste(newAimag, Soum, bag, sep = '_')
-              )    
+              )  
+view(base_demog)
 
 ###base_movement--------                   
 base_movement <- dplyr::select(original_file,
@@ -114,6 +121,7 @@ base_movement <- dplyr::select(original_file,
                      hired_labor_other_how =  '_8_a_labor_ifYes_how_text_'	# 8.a. If Yes, what do they help with
                      ) %>%
   mutate(across(c(1:3,7:8,1:13), as.factor))
+view(base_movement)
   
 
 #base2_movement <- na.omit(base_movement). # need this to do the basic summary stats or get NAs
@@ -135,6 +143,10 @@ base_tenure <- dplyr::select(original_file,
                       spContract = '_8_tenure_HH_springPasture_contract_'
 )
 base_tenure %<>% mutate(across(c(2:9), as.factor))
+view(base_tenure)
+
+
+
 
 ###altLivelihoods-------
 # _1_a_altLivelihoods_HHmems_nonHerdingWork_
@@ -229,6 +241,8 @@ base_mgmt <- dplyr::select(original_file,
 str(base_mgmt)
 # have to upate factor column codes as add elements to df"
 base_mgmt %<>% mutate(across(c(1, 9:16), as.factor))
+view(base_mgmt)
+
 
 ###livestock_fodder-------
 base_lsk <- dplyr::select(original_file, 
@@ -265,7 +279,10 @@ base_lsk <- dplyr::select(original_file,
                           ##'_11_b_livestock_nextYr_herdSzChg_plans_ifYes_why_' # error
 )
 str(base_lsk)
-#base_lsk %<>% mutate(across(c(1, 9:16), as.factor))
+base_lsk %<>% mutate(across(c(1, 9:16), as.factor))
+
+View(base_lsk)
+
 
 
 #Combined_base dfs-------
@@ -273,6 +290,8 @@ sb <-  base_demog%>%
   left_join(base_mgmt) %>%
   left_join(base_movement) %>%
       left_join(base_tenure)
+view(sb)
+
 
 #Veg change from QGis------- summarized by SOUM???
 veg <- read_csv("./data/veg_cov_chng_export.csv", 
@@ -314,4 +333,3 @@ saveRDS(sv, "./data/MGsurvey.RDS")
 # base_movement %>%
 # map(is.na) %>% map(sum)    
 
-#lil test for Jessie :)
