@@ -51,41 +51,46 @@ original_file <- original_file %>% rename(Ref = '_1_idInfo_survey_ref_') %>%
 # see the codebook to cross-reference names to data types
 
 
-
+view(original_file)
 
 
 ###BASE DEMOGRAPHICS----
-base_demog <- dplyr::select(original_file,
-                    Ref = 'Ref',
-                    Aimag = '_2_idInfo_aimag_',
-                    Soum = '_3_idInfo_soum_',
-                    bag = '_4_idInfo_bagCode_',
-                  #### demographics: -----
-                    hhSize = '_1_HHDems_num_HHmembers_',
-                    '_2_HHDems_hoh_age_',
-                    '_3_HHDems_hoh_sex_',
-                    '_4_HHDems_hoh_education_',
-                  kidsCamp = '_5_HHDems_num_HHmems_sub16_camp_tot_',
-                  kidsSoum = '_5_a_HHDems_num_HHmems_sub16_soum_',
-                  kidsAimag ='_5_b_HHDems_num_HHmems_sub16_aimag_',
-                  kidsUB = '_5_c_HHDems_num_HHmems_sub16_ub_',
-                  yaCamp = '_6_HHDems_num_HHmems_16to30_camp_tot_',
-                  yaSoum = `_6_a_HHDems_num_HHmems_16to30_soum_`, 
-                  yaAimag =  `_6_b_HHDems_num_HHmems_16to30_aimag_`, 
-                  yaUB =  `_6_c_HHDems_num_HHmems_16to30_ub_`,
-                  adCamp = '_7_HHDems_num_HHmems_30to60_camp_tot_',
-                  adSoum = `_7_a_HHDems_num_HHmems_30to60_soum_`, 
-                  adAimag = `_7_b_HHDems_num_HHmems_30to60_aimag_`, 
-                  adUB = `_7_c_HHDems_num_HHmems_30to60_ub_`,
-                  oldCamp = '_8_HHDems_num_HHmems_60plus_camp_tot_',
-                  oldSoum =`_8_a_HHDems_num_HHmems_60plus_soum_`, 
-                  oldAimag = `_8_b_HHDems_num_HHmems_60plus_aimag_`, 
-                  oldUB = `_8_c_HHDems_num_HHmems_60plus_ub_`, 
-                  khotAil_num_hh =  '_9_HHDems_num_HH_khotAil_',
-                  khotAil_num_ppl =  '_10_HHDems_num_people_khotAil_',
-                  khotAil_stay_tog =  '_11_HHDems_do_HH_stayTogether_'
-                  )
-view(base_demog)
+base_demog <- original_file %>%
+  select(
+    Ref = 'Ref',
+    Aimag = '_2_idInfo_aimag_',
+    Soum = '_3_idInfo_soum_',
+    bag = '_4_idInfo_bagCode_',
+    hhSize = '_1_HHDems_num_HHmembers_',
+    kidsCamp = '_5_HHDems_num_HHmems_sub16_camp_tot_',
+    kidsSoum = '_5_a_HHDems_num_HHmems_sub16_soum_',
+    kidsAimag = '_5_b_HHDems_num_HHmems_sub16_aimag_',
+    kidsUB = '_5_c_HHDems_num_HHmems_sub16_ub_',
+    yaCamp = '_6_HHDems_num_HHmems_16to30_camp_tot_',
+    yaSoum = `_6_a_HHDems_num_HHmems_16to30_soum_`, 
+    yaAimag =  `_6_b_HHDems_num_HHmems_16to30_aimag_`, 
+    yaUB =  `_6_c_HHDems_num_HHmems_16to30_ub_`,
+    adCamp = '_7_HHDems_num_HHmems_30to60_camp_tot_',
+    adSoum = `_7_a_HHDems_num_HHmems_30to60_soum_`, 
+    adAimag = `_7_b_HHDems_num_HHmems_30to60_aimag_`, 
+    adUB = `_7_c_HHDems_num_HHmems_30to60_ub_`,
+    oldCamp = '_8_HHDems_num_HHmems_60plus_camp_tot_',
+    oldSoum = `_8_a_HHDems_num_HHmems_60plus_soum_`, 
+    oldAimag = `_8_b_HHDems_num_HHmems_60plus_aimag_`, 
+    oldUB = `_8_c_HHDems_num_HHmems_60plus_ub_`, 
+    khotAil_num_hh = '_9_HHDems_num_HH_khotAil_',
+    khotAil_num_ppl = '_10_HHDems_num_people_khotAil_',
+    khotAil_stay_tog = '_11_HHDems_do_HH_stayTogether_'
+  ) %>%
+  mutate(
+    across(kidsCamp:oldUB, as.numeric),  # Ensure all relevant columns are numeric
+    hhSize = as.numeric(hhSize),  # Convert hhSize to numeric
+    hhSizeLarger = pmax(hhSize, rowSums(across(kidsCamp:oldUB), na.rm = TRUE), na.rm = TRUE)
+  )
+
+View(base_demog)
+
+
 
 
 
@@ -309,11 +314,11 @@ view(base_lsk)
 
 
 #Combined_base dfs-------
-sb <-  base_demog%>% 
+sv <-  base_demog%>% 
   left_join(base_mgmt) %>%
   left_join(base_movement) %>%
-      left_join(base_tenure)
-view(sb)
+  left_join(base_tenure)
+view(sv)
 
 
 
