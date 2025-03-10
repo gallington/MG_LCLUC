@@ -8,16 +8,26 @@ output:
 This relies on the combined dfs from 1_data_import, which generates the object /sv/
 
 ```{r setup , include = FALSE}
-install.packages("kableExtra")
+#install.packages("kableExtra")
 library(kableExtra)
 library(ggplot2)
-install.packages("janitor")
+#install.packages("janitor")
 library(janitor)
-install.packages("skimr")
+#install.packages("skimr")
 library(skimr)
-skim(sv)
 library(tidyr)
 library(dplyr)
+library(purrr)
+```
+
+```{r setup, include=FALSE}
+# Source the script that creates `sv`
+source("1_data_import.R")  # Replace with the actual script filename
+
+# Now `sv` should exist before calling skim()
+if (exists("sv")) {
+  skim(sv)
+}
 ```
 
 ```{r}
@@ -33,21 +43,25 @@ view(sv)
 ```
 
 
-
 Compare the numbers in hhSize to the total # reported in Camp in each age bucket
 ```{r}
 hh_check <- sv %>% 
-  select(hhSize, kidsCamp, yaCamp, adCamp, oldCamp) %>%
+  select(hhSizeLarger, kidsCamp, yaCamp, adCamp, oldCamp) %>%
   rowwise() %>%
   mutate(campTot = sum(c_across(2:5), na.rm= TRUE)) %>%
 # adjust campTot so that there are no zeros, min is 1
     mutate(campTot = if_else(campTot == 0, 1, campTot)) %>%
   # check the math by subtracting campTot from hhSize
-    mutate(hhDif = sum(hhSize - campTot))
+    mutate(hhDif = sum(hhSizeLarger - campTot))
+
+view(hh_check)
 
 
 ```
-The Difference in Household size between the answer to hhSize and the total from the age buckets reported at camp ranges from -5 to 6. So clearly some respondents are indicating that hh members are they are not and vv. Basically, there are inconsistencies in their responses.  We could check further by summing across all of their answers to see how many they report in total across all locations and compare that to hh number, but ultimately we have some misunderstanding in terms of how people are answering this question. Which suggests that we might not be able to rely on it very strongly for understanding total number of people "in a hh, at camp". But that might actually be because the respondents do not have a clear delineation/conceptualization of here/gone the way we intended for the question.  Rather, some may have some hh members residing in the soum or aimag center, for school or work, but they return very frequently to the camp, so are still considered "in the household" for that answer, even if they are not reported to be living "at the camp" at the time the Q was asked.  
+
+Jessie's Mods: After modifying the way we could HH members, the differences in hh_check are no longer including negative values, and the inconsistencies seem to have been nullified somewhat. 
+
+Prior Answer: The Difference in Household size between the answer to hhSize and the total from the age buckets reported at camp ranges from -5 to 6. So clearly some respondents are indicating that hh members are they are not and vv. Basically, there are inconsistencies in their responses.  We could check further by summing across all of their answers to see how many they report in total across all locations and compare that to hh number, but ultimately we have some misunderstanding in terms of how people are answering this question. Which suggests that we might not be able to rely on it very strongly for understanding total number of people "in a hh, at camp". But that might actually be because the respondents do not have a clear delineation/conceptualization of here/gone the way we intended for the question.  Rather, some may have some hh members residing in the soum or aimag center, for school or work, but they return very frequently to the camp, so are still considered "in the household" for that answer, even if they are not reported to be living "at the camp" at the time the Q was asked.  
 Also need to take into account that this survey was conducted during the winter and that may be limiting the ability of some hh members to return frequently from soum centers, UB, etc. 
 
 
@@ -60,7 +74,7 @@ Also need to take into account that this survey was conducted during the winter 
 tabyl(sv$outmigYN)
 #sv %>% group_by(outmigYN) %>% count(n)
 
-sv %>% tabyl(outmigYN, newAimag.x)%>%
+sv %>% tabyl(outmigYN, newAimag)%>%
   adorn_percentages(denominator = "col") %>%
   adorn_rounding(digits = 2)
 
@@ -79,25 +93,36 @@ A: Households who have had members migrate away have higher average # of hh memb
 ```{r}
 #sv %>% tabyl(outmigYN, hhSize) 
 hh_summary <- sv %>% group_by(outmigYN) %>% 
-  summarise(mean = mean(hhSize),
-            min = min(hhSize),
-            max = max(hhSize),
-            sd  = sd(hhSize)) %>% 
+  summarise(mean = mean(hhSizeLarger),
+            min = min(hhSizeLarger),
+            max = max(hhSizeLarger),
+            sd  = sd(hhSizeLarger)) %>% 
   adorn_rounding() %>%
   kable()
-hh_summary
+view(hh_summary)
 
-out_hh_test<- sv %>%
- # group_by(outmigYN) %>%.  # include this if you need to group first then consider second grouping comparison
-  group_map(~ t.test(hhSize ~ outmigYN, .x))
-
+out_hh_test <- sv %>%
+  group_map(~ {
+    test_result <- t.test(hhSizeLarger ~ outmigYN, data = .x)
+    
+    # Convert to a data frame with key values
+    data.frame(
+      group = unique(.x$outmigYN),  # Identify the grouping variable
+      statistic = test_result$statistic,
+      p_value = test_result$p.value,
+      estimate1 = test_result$estimate[1],  # Mean of group 1
+      estimate2 = test_result$estimate[2]   # Mean of group 2
+    )
+  }) %>%
+  bind_rows()  # Combine list into a single data frame
+View(out_hh_test)
 
 
 # this just yields the p.val 
 sv %>%  summarise(p.value = t.test(hhSize ~ outmigYN)$p.value)
 ```
 
-Let's double check that the # reported as hhSize is just those in the camp.
+Let's double check that the # reported as hhSizeLarger is just those in the camp.
 ```{r}
 sv
 ```
@@ -116,6 +141,7 @@ x<- sv %>% group_by(concated_loc) %>%
 ```
 
 Why hh members left:
+(TEASE OUT AND BUCKET THESE ITEMS IN MORE ACCURATE CATEGORIES)
 ```{r}
 sv %>% tabyl(mig_reason)
 ```
@@ -149,7 +175,6 @@ sv %>% group_map(~ t.test(oldCamp ~ outmigYN, .x))
 # compare average # of hh in their khot ail
 sv %>% group_map(~ t.test(khotAil_num_hh ~ outmigYN, .x))
 
-
 ```
 Contrary to our prediction, households that had had members migrate to urban areas tended to have *more* young people and *fewer* older people, compared to hh without migrants.
 
@@ -173,8 +198,9 @@ sv %>% group_by(outmigYN) %>%
 
 Q: how do these numbers of hh size vary by district?
 ```{r}
+sv
 x<- sv %>% group_by(outmigYN, concated_loc) %>% 
-  summarise(avghh = mean(hhSize, na.rm = TRUE)) 
+  summarise(avghh = mean(hhSizeLarger, na.rm = TRUE)) 
 
 #round values in all numeric columns to 2 decimal places
 x <- x %>% mutate(across(where(is.numeric), round, 2))
@@ -194,11 +220,12 @@ ad <- sv %>%
   select(           # select out the columns of interest here so it's not so unwieldy
    outmigYN,
    concated_loc,
-   hhSize,
+   hhSizeLarger,
    kidsCamp,
    kidsSoum,
    kidsAimag,
    kidsUB,
+   kidsCamp_percTotal,
    yaCamp ,
    yaSoum , 
    yaAimag , 
@@ -210,55 +237,62 @@ ad <- sv %>%
    oldCamp ,
    oldSoum, 
    oldAimag , 
-   oldUB 
-  ) %>% 
-  mutate(          # create new columns with totals
-    kidsOut = rowSums(across(c(kidsSoum, 
-                               kidsAimag, 
-                               kidsUB), 
-                             ~ .)),
-    yaOut = rowSums(across(c(yaSoum, 
-                             yaAimag, 
-                             yaUB), 
-                           ~ .)),
-    adOut = rowSums(across(c(adSoum,
-                             adAimag,
-                             adUB), 
-                           ~ .)),
-    oldOut = rowSums(across(c(oldSoum,
-                              oldAimag,
-                              ), 
-                            ~ .))
-  ) %>%
-  mutate(
-    totCamp = rowSums(across(c(kidsCamp,
-                               yaCamp,
-                               adCamp,
-                               oldCamp),
-                             ~.)),
-    totOut =rowSums(across(c(kidsOut,
-                             yaOut,
-                             adOut,
-                             oldOut),
-                           ~.)),
-                    )
-  
+   oldUB, 
+   hhMems_inCamp,
+   hhMems_outCamp
+  ) #%>% 
+#  mutate(          # create new columns with totals
+#    kidsOut = rowSums(across(c(kidsSoum, 
+#                               kidsAimag, 
+#                               kidsUB), 
+#                             ~ .)),
+#    yaOut = rowSums(across(c(yaSoum, 
+#                             yaAimag, 
+#                             yaUB), 
+#                           ~ .)),
+#    adOut = rowSums(across(c(adSoum,
+#                             adAimag,
+#                             adUB), 
+#                           ~ .)),
+#    oldOut = rowSums(across(c(oldSoum,
+#                              oldAimag,
+#                              ), 
+#                            ~ .))
+#  ) %>%
+#  mutate(
+#   totCamp = rowSums(across(c(kidsCamp,
+#                               yaCamp,
+#                               adCamp,
+#                               oldCamp),
+#                             ~.)),
+#    totOut =rowSums(across(c(kidsOut,
+#                             yaOut,
+#                             adOut,
+#                             oldOut),
+#                           ~.)),
+#                    )
 ```
 
 Totals by location:
 ```{r}
-ad %>% 
+ad %>%
+  mutate(
+    totCampPerc = if_else(hhSizeLarger > 0, round((hhMems_inCamp / hhSizeLarger) * 100, 2), 0, missing = 0),
+    totOutPerc = if_else(hhSizeLarger > 0, round((hhMems_outCamp / hhSizeLarger) * 100, 2), 0, missing = 0)
+  ) %>%
   group_by(outmigYN) %>%
   summarise(
-    across(c(hhSize, totCamp, totOut), ~ round(mean(.x, na.rm = TRUE), 2))
-  ) 
+    across(c(hhSizeLarger, hhMems_inCamp, hhMems_outCamp, totCampPerc, totOutPerc), ~ round(mean(.x, na.rm = TRUE), 2))
+  )
 
 ad %>% 
   group_by(outmigYN) %>%
   summarise(
-    across(c(hhSize, totCamp, totOut), sum, na.rm = TRUE)
-  ) 
+    across(c(hhSizeLarger, hhMems_inCamp, hhMems_outCamp), sum, na.rm = TRUE)
+  )
+
 ```
+Jessie's Mods: Not only are the households who say that members of the HH live in the soum/aimag/UB larger, a larger percentage of the household has outmigrated compared to HHs who say that HH members don't live in the soum/aimag/UB. I'm not sure what this would mean, maybe that everyone has decided that regardless of HH size, the number of people needed to do herding labor is the same, which means that larger HH's send a greater percentage of people away? I guess we would need to see if everyone is complaining about the same issues regardless of HH members in camp.  
 
 ```{r}
 ad %>% 
@@ -272,6 +306,7 @@ ad %>%
   summarise(
     across(c(kidsCamp, kidsSoum, kidsAimag, kidsUB), sum, na.rm = TRUE)
   ) 
+
 ```
 ```{r}
 ad %>% 
@@ -319,57 +354,4 @@ ad %>%
 
 ```
 
-
-#Labor and movement
-
-Has the migration of hh members impacted the labor available for herding lsk in your hh?
-```{r}
-sv %>% filter(outmigYN != 'No')%>%
-  tabyl(impacted_labor) %>%
-  adorn_rounding(digits = 2) 
-```
-
-How has it impacted labor? 
-```{r}
-tabyl(sv$impact_how)
-sv %>% filter(outmigYN != 'No') %>%
-  filter(impacted_labor == 'Yes') %>%
-  tabyl(impact_how) %>%
-  adorn_rounding(digits = 2)
-
-sv %>% filter(outmigYN != 'No') %>%
-  #filter(impacted_labor == 'Yes') %>%
-  tabyl(impacted_labor, impact_how) %>%
-  adorn_rounding(digits = 2)%>%
-  adorn_title(placement = "combined") 
-
-```
-
-Has change to labor impacted herding practices?
-
-```{r}
-sv %>% 
-  tabyl(impacted_labor, impact_herding_pract) %>%
-  adorn_totals() %>%
-  adorn_percentages(denominator = "row") %>%
-  adorn_rounding(digits = 2) %>%
-  adorn_title(placement = "combined") 
-
-
-```
-How has it changed? [Answers to this Q don't address this directly, so need to chat with Tungaa about how exactly this was worded in person...]
-```{r}
-sv %>% tabyl(impact_herd_pract_how) 
-
-sv %>% tabyl(impact_herd_pract_how, show_na = FALSE) %>%
-  adorn_rounding(digits = 2)
-```
-
-If those with  out-mig tend to have larger hh sizes, but still also say they are experiencing challenges with available labor for herding, are they more likely to have hired outside help (compared to out-mig = no) ?
-```{r}
-
-sv %>% 
-  tabyl(outmigYN, hired_labor)
-
-```
 

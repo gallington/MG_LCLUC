@@ -85,7 +85,7 @@ base_demog <- original_file %>%
   mutate(
     across(hhSize:oldUB, as.numeric),  # Ensure all relevant columns are numeric
     hhMems_inCamp = rowSums(across(c(kidsCamp, yaCamp, adCamp, oldCamp)), na.rm = TRUE),
-    hhMems_otherPlaces = rowSums(across(c(kidsSoum, kidsAimag, kidsUB, yaSoum, yaAimag, yaUB, adSoum, adAimag, adUB, oldSoum, oldAimag, oldUB)), na.rm = TRUE),
+    hhMems_outCamp = rowSums(across(c(kidsSoum, kidsAimag, kidsUB, yaSoum, yaAimag, yaUB, adSoum, adAimag, adUB, oldSoum, oldAimag, oldUB)), na.rm = TRUE),
     hhSizeLarger = pmax(hhSize, rowSums(across(kidsCamp:oldUB), na.rm = TRUE), na.rm = TRUE),
     
     # Fix percentage calculations: prevent division by zero or NA

@@ -1,0 +1,99 @@
+---
+title: "LCLUC_labor"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This relies on the combined dfs from 1_data_import, which generates the object /sv/
+
+```{r setup , include = FALSE}
+#install.packages("kableExtra")
+library(kableExtra)
+library(ggplot2)
+#install.packages("janitor")
+library(janitor)
+#install.packages("skimr")
+library(skimr)
+library(tidyr)
+library(dplyr)
+library(purrr)
+```
+
+```{r}
+
+setwd("C:/Users/jessi/OneDrive - Cornell University/Documents/MSPhD/AllingtonLab_LCLUC/RStudio_WorkingDirectory")
+names(sv) <- gsub("\\.x$", "", names(sv))
+
+str(sv)
+sv <- as.data.frame(sv)
+sv <- sv %>% 
+  mutate(across(Ref, as.factor))
+view(sv)
+```
+
+
+#Labor and movement
+
+Has the migration of hh members impacted the labor available for herding lsk in your hh?
+```{r}
+sv %>% filter(outmigYN != 'No')%>%
+  tabyl(impacted_labor) %>%
+  adorn_rounding(digits = 2) 
+
+sv
+sv %>% 
+  group_by(outmigYN) %>% 
+  tabyl(impacted_labor) %>% 
+  adorn_rounding(digits = 2)
+view(sv)
+```
+
+How has it impacted labor? 
+```{r}
+tabyl(sv$impact_how)
+sv %>% filter(outmigYN != 'No') %>%
+  filter(impacted_labor == 'Yes') %>%
+  tabyl(impact_how) %>%
+  adorn_rounding(digits = 2)
+
+sv %>% filter(outmigYN != 'No') %>%
+  #filter(impacted_labor == 'Yes') %>%
+  tabyl(impacted_labor, impact_how) %>%
+  adorn_rounding(digits = 2)%>%
+  adorn_title(placement = "combined") 
+
+```
+
+Has change to labor impacted herding practices?
+
+```{r}
+sv %>% 
+  tabyl(impacted_labor, impact_herding_pract) %>%
+  adorn_totals() %>%
+  adorn_percentages(denominator = "row") %>%
+  adorn_rounding(digits = 2) %>%
+  adorn_title(placement = "combined") 
+
+
+```
+How has it changed? [Answers to this Q don't address this directly, so need to chat with Tungaa about how exactly this was worded in person...]
+```{r}
+sv %>% tabyl(impact_herd_pract_how) 
+
+sv %>% tabyl(impact_herd_pract_how, show_na = FALSE) %>%
+  adorn_rounding(digits = 2)
+```
+
+If those with  out-mig tend to have larger hh sizes, but still also say they are experiencing challenges with available labor for herding, are they more likely to have hired outside help (compared to out-mig = no) ?
+```{r}
+
+sv %>% 
+  tabyl(outmigYN, hired_labor)
+
+```
