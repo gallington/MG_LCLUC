@@ -8,30 +8,28 @@ output:
 This relies on the combined dfs from 1_data_import, which generates the object /sv/
 
 ```{r setup , include = FALSE}
-#install.packages("kableExtra")
+install.packages("kableExtra")
 library(kableExtra)
 library(ggplot2)
-#install.packages("janitor")
+install.packages("janitor")
 library(janitor)
-#install.packages("skimr")
+install.packages("skimr")
 library(skimr)
-#skim(sv)
+skim(sv)
 library(tidyr)
 library(dplyr)
 ```
 
 ```{r}
-setwd("C:/Users/jessi/OneDrive - Cornell University/Documents/MSPhD/AllingtonLab_LCLUC/RStudio_WorkingDirectory")
-sv <- read_csv("MG_LCLUC_Household_Survey_TRANSLATED_02172024.csv", 
-                           col_names = TRUE, 
-                           trim_ws = TRUE)
 
+setwd("C:/Users/jessi/OneDrive - Cornell University/Documents/MSPhD/AllingtonLab_LCLUC/RStudio_WorkingDirectory")
 names(sv) <- gsub("\\.x$", "", names(sv))
 
 str(sv)
 sv <- as.data.frame(sv)
-sv <- sv %>% rename(Ref = '_1_idInfo_survey_ref_') %>%
-                                   mutate(across(Ref, as.factor))
+sv <- sv %>% 
+  mutate(across(Ref, as.factor))
+view(sv)
 ```
 
 

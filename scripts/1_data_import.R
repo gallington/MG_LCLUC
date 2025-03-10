@@ -83,12 +83,20 @@ base_demog <- original_file %>%
     khotAil_stay_tog = '_11_HHDems_do_HH_stayTogether_'
   ) %>%
   mutate(
-    across(kidsCamp:oldUB, as.numeric),  # Ensure all relevant columns are numeric
-    hhSize = as.numeric(hhSize),  # Convert hhSize to numeric
-    hhSizeLarger = pmax(hhSize, rowSums(across(kidsCamp:oldUB), na.rm = TRUE), na.rm = TRUE)
+    across(hhSize:oldUB, as.numeric),  # Ensure all relevant columns are numeric
+    hhMems_inCamp = rowSums(across(c(kidsCamp, yaCamp, adCamp, oldCamp)), na.rm = TRUE),
+    hhMems_otherPlaces = rowSums(across(c(kidsSoum, kidsAimag, kidsUB, yaSoum, yaAimag, yaUB, adSoum, adAimag, adUB, oldSoum, oldAimag, oldUB)), na.rm = TRUE),
+    hhSizeLarger = pmax(hhSize, rowSums(across(kidsCamp:oldUB), na.rm = TRUE), na.rm = TRUE),
+    
+    # Fix percentage calculations: prevent division by zero or NA
+    kidsCamp_percTotal = if_else(kidsCamp > 0, round(kidsCamp / hhSizeLarger * 100, 1), 0, missing = 0),
+    yaCamp_percTotal = if_else(yaCamp > 0, round(yaCamp / hhSizeLarger * 100, 1), 0, missing = 0),
+    adCamp_percTotal = if_else(adCamp > 0, round(adCamp / hhSizeLarger * 100, 1), 0, missing = 0),
+    oldCamp_percTotal = if_else(oldCamp > 0, round(oldCamp / hhSizeLarger * 100, 1), 0, missing = 0)
   )
 
 View(base_demog)
+
 
 
 

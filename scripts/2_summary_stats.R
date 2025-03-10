@@ -1,12 +1,12 @@
 # basic summary stats for inital investigation
 
-#install.packages("kableExtra")
+install.packages("kableExtra")
 library(kableExtra)
 library(janitor)
 library(skimr)
 
-tabyl(sv$outmigYN)
-skim(sv)
+tabyl(sb$outmigYN)
+skim(sb)
 
 
 
