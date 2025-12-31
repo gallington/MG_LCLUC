@@ -9,6 +9,9 @@
 # 5 = camels 
 #(Bedunah and Schmidt, 2000)
 
+sv<- readRDS("./data/MGsurvey.RDS")
+
+
 # calculate SFU per hh:
 
 sfu23 <- base_lsk %>% group_by(Ref) %>%
@@ -97,3 +100,10 @@ abline(0,1)
 #   values_drop_na = TRUE
 # )
 
+
+
+# lsk x labor -------------------------------------------------------------
+str(lsk_fen)
+lsk_fen$impacted_labor <- factor(lsk_fen$impacted_labor, levels = c("No", "Yes"))
+model <- glm(impacted_labor ~ sfuChange, data = lsk_fen, family = binomial)
+summary(model)

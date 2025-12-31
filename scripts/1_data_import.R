@@ -12,7 +12,6 @@
          #veg values: "Dundgobi"   "Gobisumber" "Tuv"
 
 
-
 #SET ENV------- 
 ##pkgs-----
 library(tidyverse)
@@ -34,7 +33,7 @@ setwd("/Users/gra38/Library/CloudStorage/Box-Box/Repositories/MG_LCLUC")
 
 ##IMPORT DATA FILE ------------------------------------
 # this is the latest file from the SUMR proj, dated 16 Aug 2024:
-original_file <- read_csv("./data/MG_LCLUC_Household_Survey_TRANSLATED_team_08152024.csv", 
+original_file <- read_csv2("./data/MG_LCLUC_Household_Survey_TRANSLATED_team_08152024.csv", 
                            col_names = TRUE, 
                            trim_ws = TRUE)
 str(original_file)
@@ -272,7 +271,8 @@ str(base_lsk)
 sb <-  base_demog%>% 
   left_join(base_mgmt) %>%
   left_join(base_movement) %>%
-      left_join(base_tenure)
+      left_join(base_tenure) %>%
+  left_join(base_lsk)
 
 #Veg change from QGis------- summarized by SOUM???
 veg <- read_csv("./data/veg_cov_chng_export.csv", 
