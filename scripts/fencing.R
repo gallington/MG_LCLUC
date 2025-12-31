@@ -9,6 +9,9 @@ library(jtools)
 #install.packages("sjPlot")
 library(sjPlot)
 library(magrittr)
+
+#load the Rdata file with the subset data from the survey:
+  # this was created in 1_data_import
 sv<- readRDS("./data/MGsurvey.RDS")
 
 # filter out those who want to fence:

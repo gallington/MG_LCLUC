@@ -1,0 +1,11 @@
+Data exploration and analysis for hosuehold survey data from MG_LCLUC project.
+
+/scripts:
+1_data_import.R: this script subsets the full dataset and renames complicated column names.
+Exports the subset to an RData file: MGSurvey
+
+2_summary_sats.R: some basic initial data exploration
+
+3_recoding factors.R:
+
+fencing.R: some of the basic summary stats for the Fencing paper

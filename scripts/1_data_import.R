@@ -33,7 +33,7 @@ setwd("/Users/gra38/Library/CloudStorage/Box-Box/Repositories/MG_LCLUC")
 
 ##IMPORT DATA FILE ------------------------------------
 # this is the latest file from the SUMR proj, dated 16 Aug 2024:
-original_file <- read_csv2("./data/MG_LCLUC_Household_Survey_TRANSLATED_team_08152024.csv", 
+original_file <- read_csv2("./data/MG_LCLUC_Household_Survey_TRANSLATED_team_08152024.csv",
                            col_names = TRUE, 
                            trim_ws = TRUE)
 str(original_file)
