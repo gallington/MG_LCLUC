@@ -13,6 +13,7 @@ library(magrittr)
 #load the Rdata file with the subset data from the survey:
   # this was created in 1_data_import
 sv<- readRDS("./data/MGsurvey.RDS")
+sv <- sv[1:187,]
 
 # filter out those who want to fence:
 # Filter rows where the 'howChngNext5Y' column contains the substring "fenc"
@@ -22,16 +23,17 @@ sv<- readRDS("./data/MGsurvey.RDS")
 
 # Fencing DV --------------------------------------------------------------
 # Create Fencing DV for fencing to use as a response param:
-fv <- mutate(sv, FencYN = if_else(str_detect(howChngNext5Y, "Fenc"), 1, 0)) %>%
-  mutate(FencYN = if_else(is.na(FencYN), 0, 1)) 
-#why is last row empty? need to trace that back.
-fv_clean <- fv[1:187,]
+sv_clean<- sv %>% filter(mgmtChngNext5Y == "Yes") 
+sv_clean$FencYN <- ifelse(grepl("fenc", sv_clean$howChngNext5Y, ignore.case = TRUE), 1, 0) # this keeps NA
+
+fv_clean <- sv_clean
 
 # DO WE NEED THIS?
 # center the predictor bc the range is never zero
-fv_clean$cov23median <- as.numeric(scale(fv_clean$cov23median, scale = FALSE))  # Center without scaling
+#fv_clean$cov23median <- as.numeric(scale(fv_clean$cov23median, scale = FALSE))  # Center without scaling
 
 plot(FencYN~cov23median, data = fv_clean)
+
 
 
 # FenceXVeg model ---------------------------------------------------------
@@ -74,6 +76,35 @@ ks<- ks.test(fv_clean$cov23median[fv_clean$FencYN == "0"],
 medians
 
 
+# Generate a dataset for predictions
+# Creates a sequence of cov23median values for which to predict probabilities:
+new_data <- data.frame(
+  cov23median = seq(
+    min(fv_clean$cov23median, na.rm = TRUE),
+    max(fv_clean$cov23median, na.rm = TRUE),
+    length.out = 100
+  )
+) 
+# creates a sequence of values beyond those sampled:
+# new_data2 <- data.frame(cov23median = seq(55, 80, length.out = 30))
+
+# Calculates predicted probabilities for the new data:
+new_data$predicted_prob <- predict(f.mod, newdata = new_data, type = "response")
+
+# Plot the predicted probabilities
+ggplot() +
+  geom_point(data = fv_clean, aes(x = cov23median, y = FencYN), color = "blue") +
+  geom_line(data = new_data, aes(x = cov23median, y = predicted_prob), color = "red") +
+  labs(
+    x = "Median veg cover in surrounding district in 2023",
+    y = "Predicted probability of planned fencing"
+  ) +
+  theme_minimal()
+
+#For multiple predictors: You can fix one predictor at a constant value (e.g., median or mean) and vary the other to create a similar plot.
+#For categorical predictors: Facet the plot by the categorical variable using facet_wrap(~ predictor2).
+
+
 
 
 # mixed effectws model, grouped by Soum
@@ -103,35 +134,6 @@ summ(f.mod, exp = TRUE)
 # Create a table
 tab_model(f.mod, f.me, show.se = TRUE,  show.aic = TRUE)
 
-
-
-# Generate a dataset for predictions
-  # Creates a sequence of cov23median values for which to predict probabilities:
-new_data <- data.frame(
-  cov23median = seq(
-    min(fv_clean$cov23median, na.rm = TRUE),
-    max(fv_clean$cov23median, na.rm = TRUE),
-    length.out = 100
-  )
-) 
-# creates a sequence of values beyond those sampled:
-new_data2 <- data.frame(cov23median = seq(55, 80, length.out = 30))
-
-  # Calculates predicted probabilities for the new data:
-new_data$predicted_prob <- predict(f.mod, newdata = new_data, type = "response")
-
-# Plot the predicted probabilities
-ggplot() +
-  geom_point(data = fv_clean, aes(x = cov23median, y = FencYN), color = "blue") +
-  geom_line(data = new_data, aes(x = cov23median, y = predicted_prob), color = "red") +
-  labs(
-    x = "Median veg cover in surrounding district in 2023",
-    y = "Predicted probability of planned fencing"
-  ) +
-  theme_minimal()
-
-#For multiple predictors: You can fix one predictor at a constant value (e.g., median or mean) and vary the other to create a similar plot.
-#For categorical predictors: Facet the plot by the categorical variable using facet_wrap(~ predictor2).
 
 
 # Fence x Lsk model -------------------------------------------------------
